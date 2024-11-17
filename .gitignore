@@ -1,0 +1,11 @@
+mail_credentials.json
+images/
+# Python-related
+setahub/
+__pycache__
+index.html
+
+
+instance/
+*.db
+*.sqlite
