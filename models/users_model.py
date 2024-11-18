@@ -22,6 +22,9 @@ class User(Base):
     appointments = relationship("Appointment", back_populates="ta")
     student_bookings = relationship("Booking", foreign_keys=[Booking.student_id], back_populates="student")
     ta_bookings = relationship("Booking", foreign_keys=[Booking.ta_id], back_populates="ta")
+    # Define relationships for sent and received messages
+    sent_messages = relationship("Message", back_populates="from_user", foreign_keys="Message.from_user_id")
+    received_messages = relationship("Message", back_populates="to_user", foreign_keys="Message.to_user_id")
 
 async def create_user_account_model(db: Session, user: UserCreate):
     db_user = User(

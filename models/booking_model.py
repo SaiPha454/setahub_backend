@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Date, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Date, JSON, or_, and_
 from sqlalchemy.orm import relationship, joinedload
 import enum
 from sqlalchemy.orm import Session
@@ -62,6 +62,19 @@ async def already_booked(db: Session, booking_data: BookingCreate):
 async def get_booking_by_id_model(db: Session, booking_id: int):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     return booking
+
+
+
+async def get_booking_between_two_users(db: Session, user1_id: int, user2_id: int):
+    
+    booking = db.query(Booking).filter(
+        or_(
+            and_(Booking.ta_id == user1_id, Booking.student_id == user2_id, Booking.status==BookingStatus.PENDING),
+            and_(Booking.ta_id == user2_id, Booking.student_id == user1_id, Booking.status==BookingStatus.PENDING),
+        )
+    ).first()
+    return booking
+
 
 
 async def complete_booking_model(db: Session, booking_id: int):

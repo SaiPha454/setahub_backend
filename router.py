@@ -3,8 +3,9 @@ from routes.user_route import router as user_router
 from routes.topic_route import router as topic_router
 from routes.appointment_route import router as appointment_router
 from routes.booking_route import router as booking_router
+from routes.message_route import router as message_router
 from database_connection import Base,engine
-from models import users_model #register table to be created
+from models import users_model, message_model, topics_model, booking_model,appointment_model #register table to be created
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse
@@ -84,3 +85,4 @@ app.include_router(user_router)
 app.include_router(topic_router)
 app.include_router(appointment_router)
 app.include_router(booking_router)
+app.include_router(message_router)
