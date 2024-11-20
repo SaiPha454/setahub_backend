@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends, Body, File, status, UploadFile, Form
+from fastapi import APIRouter, Depends, Body, File, status, UploadFile, Form, Request
 from fastapi.responses import JSONResponse
 from database_connection import get_db
 from sqlalchemy.orm import Session
 from schemas.topic_shema import TopicUpdate
 from schemas.topic_with_session_schema import TopicReadWithAppointments
 from typing import List
-from services import topics_service
+from services import topics_service, user_service
 
 router = APIRouter(
     prefix="/topics",
     tags=["topics"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(user_service.authenticate_user)]
 )
 
 
@@ -99,8 +100,9 @@ async def delete_topic(
 # Route for creating a new topic
 @router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def create_topic(
+    request: Request,
     topic: str = Form(...),
-    img: UploadFile = File(...),
+    img: UploadFile = File(None) ,
     db: Session = Depends(get_db)
 ):
     # Pass the validated data to the service layer to create a new topic

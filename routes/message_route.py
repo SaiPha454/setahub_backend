@@ -1,7 +1,7 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, HTTPException, UploadFile, File
 from fastapi.requests import Request
 from typing import Dict, List
-from services.message_service import create_message_service, get_messages_service, get_unread_messages_service
+from services.message_service import create_message_service, get_messages_service, get_unread_messages_service, create_message_image_service
 from sqlalchemy.orm import Session
 from database_connection import get_db
 from datetime import datetime, timezone
@@ -19,13 +19,13 @@ router = APIRouter(
 class ConnectionManager:
     def __init__(self):
         self.connection_pools : Dict[int, WebSocket] = {}
-        self.active_users : set[int] = []
+        self.active_users : Dict[int] = {}
         self.chatting_users : Dict[int, Dict[str, int]] = {} #{ 1 : { "user_id":1, "peer_user_id": 2 }  }
     
     async def connect(self, socket: WebSocket, user_id: int):
         await socket.accept()
         self.connection_pools[user_id] = socket
-        self.active_users.append(user_id)
+        self.active_users[user_id] = True
 
         await self.broadcast({
             "type":"users_status",
@@ -41,7 +41,7 @@ class ConnectionManager:
         
         if user_id in self.connection_pools:
             del self.connection_pools[user_id]
-            self.active_users.remove(user_id)
+            del self.active_users[user_id]
 
         await self.broadcast({
             "type":"users_status",
@@ -152,6 +152,69 @@ async def send_message(from_user_id: int, to_user_id: int, data: MessageSent , d
                     to_user_id=data.data.to_user_id,
                     message=data.data.message, 
                     msg_type=data.data.msg_type,
+                    status= msg_status
+                )
+    
+
+    message_data = {
+        "type":"message",
+        "data": created_message
+    }
+
+    await connection_manager.send_to_personal(to_user_id=message_data["data"]["to_user_id"], data=message_data)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status":"fail",
+            "data": message_data
+        }
+    )
+
+
+
+@router.post("/messages/{from_user_id}/to/{to_user_id}/images")
+async def send_message(request: Request, from_user_id: int, to_user_id: int, image: UploadFile = File(...) , db: Session = Depends(get_db)):
+
+    if image.content_type not in ["image/jpeg", "image/png", "image/gif"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "status":"fail",
+                "message":"Only image files are allowed (jpeg, png, gif)."
+            }
+        )
+    
+    # Check if two uers are allowed to message each other
+    booking = await get_booking_between_two_users(db=db, user1_id=from_user_id, user2_id=to_user_id)
+    if not booking:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "status":"fail",
+                "message":"Cannot send message to this user without schedule"
+            }
+        )
+    
+    if int(from_user_id) not in connection_manager.connection_pools:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "status":"fail",
+                "message":"No Websocket connection"
+            }
+        )
+    
+    msg_status = "sent"
+    if await connection_manager.is_peer_chatting(from_user_id=from_user_id, to_user_id=to_user_id):
+        
+        msg_status = "read"
+
+    created_message = await create_message_image_service(
+                    request= request, 
+                    db=db, 
+                    from_user_id=from_user_id, 
+                    to_user_id=to_user_id,
+                    image = image,
                     status= msg_status
                 )
     

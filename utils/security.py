@@ -45,10 +45,10 @@ async def get_token_from_cookie(request: Request, key: str):
     if not token:
         
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
+            status_code=status.HTTP_401_UNAUTHORIZED, 
             detail={
                 "error":{
-                    "message":"Token not found. Please login",
+                    "message":"UnAuthorize",
                     "detail":None
                 }
             }

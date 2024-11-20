@@ -27,7 +27,7 @@ async def register(db: Session, user: UserCreate) -> dict:
         result = UserAuthRead.model_validate(db_user)
         
         result= UserAuthRead.model_dump(result)
-        print("User : ",result)
+        
         return result
     
     except IntegrityError:
@@ -35,9 +35,8 @@ async def register(db: Session, user: UserCreate) -> dict:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail= {
-                "error": {
-                    "message": "The user already exist"
-                }
+                 "message": "The user already exist",
+                 "status":"fail"
             }
         )
     
@@ -316,4 +315,4 @@ async def validate_token(db: Session, user_token : str):
 async def authenticate_user( request: Request,db: Session= Depends(get_db)):
     token = await security.get_token_from_cookie(request,"jarvis")
     user = await validate_token(db,token)
-    return user
+    return UserRead.model_validate(user).model_dump()

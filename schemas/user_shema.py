@@ -6,7 +6,7 @@ from typing import Optional
 class UserBase(BaseModel):
     name: str = Field(..., example="John Doe")
     email: EmailStr = Field(..., example="john.doe@example.com")
-    year: int = Field(..., ge=1900, le=2100, example=2024)
+    year: int = Field(..., ge=1, le=4, example=2024)
     student_id: int = Field(..., example=66011203)
 
     class Config:

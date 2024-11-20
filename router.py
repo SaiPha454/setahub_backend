@@ -1,5 +1,6 @@
 from fastapi import FastAPI, status, Request
 from routes.user_route import router as user_router
+from routes.user_route import protected_router as protected_user_router
 from routes.topic_route import router as topic_router
 from routes.appointment_route import router as appointment_router
 from routes.booking_route import router as booking_router
@@ -12,6 +13,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
 from utils.security import SECRET_KEY
+import os
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -38,15 +41,13 @@ async def custom_http_exception_handleer(request, exec: RequestValidationError):
 async def custom_http_exception_handleer(request: Request, exec: HTTPException):
     return JSONResponse(
         status_code= exec.status_code,
-        content={
-            "error":exec.detail
-        }
+        content=exec.detail
     )
 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=["http://localhost:3000"],  # Allow all origins
     allow_credentials=True,  # Allow cookies to be included in requests
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -80,9 +81,14 @@ app.add_middleware(UserMiddleware)
 
 Base.metadata.create_all(bind=engine)
 
+images_folder_path = os.path.join(os.getcwd(),"images")
+
+app.mount("/images", StaticFiles(directory=images_folder_path), name="images")
 
 app.include_router(user_router)
+app.include_router(protected_user_router)
 app.include_router(topic_router)
 app.include_router(appointment_router)
 app.include_router(booking_router)
 app.include_router(message_router)
+

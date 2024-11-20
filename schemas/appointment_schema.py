@@ -4,14 +4,14 @@ from pydantic import BaseModel, field_validator, FieldValidationInfo
 from typing import Optional, List
 from datetime import datetime
 from fastapi import HTTPException, status
-
+from schemas.topic_shema import TopicRead
 class AppointmentRead(BaseModel):
     id: int
     topic_id:int
     ta_id: int
-    date: List[str]
-    timeslots: Optional[dict] = None 
-
+    date: List[str] = []
+    timeslots: Optional[dict] = {} 
+    topic: TopicRead = {}
     class Config:
         orm_mode = True
         from_attributes = True
@@ -22,8 +22,8 @@ class AppointmentRead(BaseModel):
 class AppointmentCreate(BaseModel):
     topic_id: int
     ta_id: int
-    date: Optional[List[str]] = None  # Optional date field (e.g., "2024-11-15")
-    timeslots: Optional[dict] = None  # List of dictionaries, each with time and label
+    date: Optional[List[str]] = []  # Optional date field (e.g., "2024-11-15")
+    timeslots: Optional[dict] = {}  # List of dictionaries, each with time and label
 
     class Config:
         orm_mode = True  # Enable ORM mode so that Pydantic will work with SQLAlchemy models

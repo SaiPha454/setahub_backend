@@ -38,7 +38,7 @@ async def get_topic_with_appointments(db: Session, topic_id: int):
             "status":"fail",
             "message":"Topic not found"
         })
-    
+    print("About to fetch ....", topic)
     topic_with_appointments = TopicReadWithAppointments(
         id=topic.id,
         topic=topic.topic,
@@ -52,10 +52,12 @@ async def get_topic_with_appointments(db: Session, topic_id: int):
                 ta_id=apppointment.ta_id,
                 date=apppointment.date,  # Ensure date is a string
                 timeslots=apppointment.timeslots,
-                ta=apppointment.ta
+                ta=apppointment.ta,
+                topic=topic
             ) for apppointment in topic.appointments
         ]
     )
+    print("Fetched ....")
     return topic_with_appointments
 
 # Update a topic by ID
@@ -83,16 +85,17 @@ async def delete_topic_service(db: Session, topic_id: int) -> bool:
         })
     return True
 
-def create_topic_service(db: Session, topic: str, img: UploadFile) -> Topic:
+def create_topic_service(db: Session, topic: str, img: UploadFile = None) -> Topic:
 
-    if img.content_type not in ["image/jpeg", "image/png", "image/gif"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "status":"fail",
-                "message":"Only image files are allowed (jpeg, png, gif)."
-            }
-        )
+    if img: 
+        if img.content_type not in ["image/jpeg", "image/png", "image/gif"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "status":"fail",
+                    "message":"Only image files are allowed (jpeg, png, gif)."
+                }
+            )
     # Check if a topic with the same name already exists (optional, can be removed based on requirements)
     existing_topic = get_topic_by_topic(db, topic)
     if existing_topic:
@@ -106,16 +109,18 @@ def create_topic_service(db: Session, topic: str, img: UploadFile) -> Topic:
 
     # Create a new topic instance
     try:
-        # Generate a unique filename for the image
-        unique_filename = f"{uuid.uuid4()}_{img.filename}"
-        img_path = IMAGE_DIR / unique_filename
+        img_url = "/images/default.png"
+        if img:
+            # Generate a unique filename for the image
+            unique_filename = f"{uuid.uuid4()}_{img.filename}"
+            img_path = IMAGE_DIR / unique_filename
 
-        # Save the uploaded file with the unique filename
-        with img_path.open("wb") as buffer:
-            shutil.copyfileobj(img.file, buffer)
+            # Save the uploaded file with the unique filename
+            with img_path.open("wb") as buffer:
+                shutil.copyfileobj(img.file, buffer)
 
-        # Create the URL for the saved image
-        img_url = f"/images/{unique_filename}"
+            # Create the URL for the saved image
+            img_url = f"/images/{unique_filename}"
 
         # Create the topic record in the database
         new_topic = Topic(img=img_url, topic=topic, tas=0, booked=0)

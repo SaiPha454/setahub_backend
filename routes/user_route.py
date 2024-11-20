@@ -13,11 +13,17 @@ from fastapi.requests import Request
 from pydantic import EmailStr, Field
 
 router = APIRouter(
-    prefix="/users",
-    tags=["users"],
+    prefix="/auth",
+    tags=["Auth"],
     responses={404: {"description": "Not found"}},
 )
 
+protected_router = APIRouter(
+    prefix="/users",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+    dependencies=[Depends(user_service.authenticate_user)]
+)
 
 @router.post("/register", response_model=dict)
 async def register(
@@ -25,7 +31,11 @@ async def register(
     user : Annotated[UserCreate, Body()] = None
 ):
     if user == None :
-        raise HTTPException(status_code=400, detail="Bad request")
+        raise HTTPException(status_code=400, detail={
+                 "message": "Invalid user data",
+                 "status":"fail"
+            }
+         )
     else:
         created_user = await user_service.register(db, user)
         # print(created_user)
@@ -45,6 +55,7 @@ async def login(
     db: Session = Depends(get_db),
     user : Annotated[UserLogin, Body()] = None,
 ):
+    print("Requested", user)
     if user == None :
         raise HTTPException(status_code=400, detail="Bad request")
     else:
@@ -80,7 +91,7 @@ async def reset(
     )
     return response
 
-@router.put("/change-password",response_model=dict)
+@protected_router.put("/change-password",response_model=dict)
 async def reset(
     request: Request,
     response: Response,
@@ -106,7 +117,7 @@ async def reset(
         }
     )
 
-@router.get("/{user_id}", response_model=dict)
+@protected_router.get("/{user_id}", response_model=dict)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 
     result = await user_service.get_user_by_id_service(db, user_id)
@@ -118,7 +129,7 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         }
     )
 
-@router.get("/{user_id}/registered-topics", response_model=dict)
+@protected_router.get("/{user_id}/registered-topics", response_model=dict)
 async def get_user_by_id_with_registered_topics(user_id: int, db: Session = Depends(get_db)):
     
     result = await user_service.get_user_by_id_with_appointments_service(db, user_id)
@@ -131,7 +142,7 @@ async def get_user_by_id_with_registered_topics(user_id: int, db: Session = Depe
         }
     )
 
-@router.get("/{user_id}/available-timeslots", response_model=dict)
+@protected_router.get("/{user_id}/available-timeslots", response_model=dict)
 async def get_user_available_timeslots(user_id: int, topic_id : int, db: Session = Depends(get_db)):
     
     result = await user_service.get_user_available_timeslots_service(db, user_id, topic_id)
@@ -144,7 +155,7 @@ async def get_user_available_timeslots(user_id: int, topic_id : int, db: Session
         }
     )
 
-@router.get("/{user_id}/upcoming-bookings")
+@protected_router.get("/{user_id}/upcoming-bookings")
 async def get_user_upcoming_booking(user_id: int, db: Session= Depends(get_db)):
     
     result = await user_service.get_user_upcoming_booking_service(db, user_id)
@@ -156,7 +167,7 @@ async def get_user_upcoming_booking(user_id: int, db: Session= Depends(get_db)):
         }
     )
 
-@router.get("/{user_id}/completed-bookings")
+@protected_router.get("/{user_id}/completed-bookings")
 async def get_user_completed_booking(user_id: int, db: Session= Depends(get_db)):
     result = await user_service.get_user_completed_booking_service(db, user_id)
     return JSONResponse(
@@ -168,7 +179,7 @@ async def get_user_completed_booking(user_id: int, db: Session= Depends(get_db))
     )
 
 
-@router.get("/{user_id}/upcoming-appointments")
+@protected_router.get("/{user_id}/upcoming-appointments")
 async def get_user_ta_upcoming_ta_appointments(user_id: int, db: Session= Depends(get_db)):
     result = await user_service.get_user_upcoming_ta_appointments_service(db, user_id)
     return JSONResponse(
@@ -179,7 +190,7 @@ async def get_user_ta_upcoming_ta_appointments(user_id: int, db: Session= Depend
         }
     )
 
-@router.get("/{user_id}/completed-appointments")
+@protected_router.get("/{user_id}/completed-appointments")
 async def get_user_completed_ta_appointment(user_id: int, db: Session= Depends(get_db)):
     result = await user_service.get_user_completed_ta_appointments_service(db, user_id)
     return JSONResponse(
@@ -192,13 +203,13 @@ async def get_user_completed_ta_appointment(user_id: int, db: Session= Depends(g
 
 
 #example of protected user
-@router.get("/test")
+@router.get("/", response_model=dict)
 async def protected_route(
     request: Request,
     current_user: any = Depends(user_service.authenticate_user),
     db: Session = Depends(get_db),
 
 ):
-    return "Hi"
+    return current_user
 
     
