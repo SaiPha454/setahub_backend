@@ -131,7 +131,14 @@ async def send_message(from_user_id: int, to_user_id: int, data: MessageSent , d
                 "message":"Cannot send message to this user without schedule"
             }
         )
-    
+    if booking.status == "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "status":"fail",
+                "message":"Cannot send message. Booking expires"
+            }
+        )
     if int(from_user_id) not in connection_manager.connection_pools:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

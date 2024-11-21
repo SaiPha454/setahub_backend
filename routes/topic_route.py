@@ -79,24 +79,6 @@ async def update_topic(
 
 
 
-# Route for deleting a topic
-@router.delete("/{topic_id}", response_model=dict)
-async def delete_topic(
-    topic_id: int,
-    db: Session = Depends(get_db)
-):
-    await topics_service.delete_topic_service(db, topic_id)
-    return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "status": "success",
-                "message": f"Topic with id {topic_id} has been deleted."
-            }
-        )
-
-
-
-
 # Route for creating a new topic
 @router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def create_topic(
@@ -126,5 +108,24 @@ async def create_topic(
                 }
             }
         )
+
+# Route for deleting a topic
+@router.delete("/{topic_id}", response_model=dict)
+async def delete_topic(
+    topic_id: int,
+    db: Session = Depends(get_db)
+):
+    await topics_service.delete_topic_service(db, topic_id)
+    return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "status": "success",
+                "message": f"Topic with id {topic_id} has been deleted."
+            }
+        )
+
+
+
+
 
     

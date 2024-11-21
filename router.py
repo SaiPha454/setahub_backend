@@ -1,4 +1,5 @@
 from fastapi import FastAPI, status, Request
+import asyncio
 from routes.user_route import router as user_router
 from routes.user_route import protected_router as protected_user_router
 from routes.topic_route import router as topic_router
@@ -15,6 +16,8 @@ import jwt
 from utils.security import SECRET_KEY
 import os
 from fastapi.staticfiles import StaticFiles
+from database_session import SessionLocal
+
 
 app = FastAPI()
 
@@ -54,6 +57,25 @@ app.add_middleware(
 )
 
 
+# Background task for periodic check
+async def periodic_check():
+    while True:
+        # Explicitly create a session for the background task
+        with SessionLocal() as session:
+            try:
+                # Call your function to mark overdue bookings
+                booking_model.mark_overdated_bookings_as_completed(session=session)
+            except Exception as e:
+                print(f"Error during periodic check: {e}")
+            # Ensure the task runs every 10 seconds
+            await asyncio.sleep(30)
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the background task when the app starts
+    asyncio.create_task(periodic_check())  # This runs in the background
+
+
 class UserMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
 
@@ -91,4 +113,5 @@ app.include_router(topic_router)
 app.include_router(appointment_router)
 app.include_router(booking_router)
 app.include_router(message_router)
+
 

@@ -91,3 +91,4 @@ async def delete_booking_by_id_service(db: Session, booking_id: int):
                 "message": "The Booking does not exist"}
         )
     return deleted_booking
+

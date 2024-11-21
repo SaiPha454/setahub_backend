@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from schemas.booking_schema import BookingCreate
 from database_connection import Base
 from fastapi import HTTPException, status
+from datetime import date
+from sqlalchemy import update
 
 class BookingStatus(enum.Enum):
     PENDING = "pending"
@@ -54,7 +56,7 @@ async def create_booking_model(db: Session, booking_data: BookingCreate):
     topic.booked = topic.booked +1
     db.commit()
     db.refresh(topic)
-    
+
     return new_booking
 
 async def already_booked(db: Session, booking_data: BookingCreate):
@@ -176,3 +178,24 @@ async def delete_booking_by_id_model(db: Session, booking_id: int):
         db.commit()
         return True
     return False
+
+
+
+def mark_overdated_bookings_as_completed(session: Session):
+    """
+    Marks bookings with dates earlier than today as completed.
+    This function works with PostgreSQL using SQLAlchemy.
+    """
+    today = date.today()
+
+    # Update query to mark outdated bookings as completed
+    stmt = (
+        update(Booking)
+        .where(Booking.date < today, Booking.status == BookingStatus.PENDING)
+        .values(status=BookingStatus.COMPLETED)
+    )
+    
+    # Execute and commit the transaction
+    session.execute(stmt)
+    session.commit()
+    print("Overdated bookings have been marked as completed.")

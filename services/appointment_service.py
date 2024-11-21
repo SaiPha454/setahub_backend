@@ -97,4 +97,6 @@ async def delete_appointment_service(db: Session, appointment_id: int):
             }
         )
     return await appointment_model.delete_appointment_model(db, appointment_id)
+
+
     

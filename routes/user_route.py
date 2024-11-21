@@ -91,6 +91,25 @@ async def reset(
     )
     return response
 
+
+@protected_router.post("/logout", response_model=dict)
+async def user_logout(response: Response):
+    response = JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status":"success"
+        }
+    )
+
+    response.delete_cookie(
+        key="jarvis",  # Use the same key as when you set the cookie
+        httponly=True,
+        secure=True,  # Use this in production (requires HTTPS)
+        samesite="strict"  # Adjust based on your application needs
+    )
+    return response
+
+
 @protected_router.put("/change-password",response_model=dict)
 async def reset(
     request: Request,
@@ -114,18 +133,6 @@ async def reset(
         content= {
             "status":"success",
             "data":user
-        }
-    )
-
-@protected_router.get("/{user_id}", response_model=dict)
-async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
-
-    result = await user_service.get_user_by_id_service(db, user_id)
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={
-            "status":"success",
-            "data": result
         }
     )
 
@@ -164,6 +171,18 @@ async def update_user_account(
         }
     )
 
+
+@protected_router.get("/{user_id}", response_model=dict)
+async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+
+    result = await user_service.get_user_by_id_service(db, user_id)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status":"success",
+            "data": result
+        }
+    )
 
 @protected_router.get("/{user_id}/registered-topics", response_model=dict)
 async def get_user_by_id_with_registered_topics(user_id: int, db: Session = Depends(get_db)):
@@ -237,22 +256,7 @@ async def get_user_completed_ta_appointment(user_id: int, db: Session= Depends(g
         }
     )
 
-@protected_router.post("/logout", response_model=dict)
-async def user_logout(response: Response):
-    response = JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={
-            "status":"success"
-        }
-    )
 
-    response.delete_cookie(
-        key="jarvis",  # Use the same key as when you set the cookie
-        httponly=True,
-        secure=True,  # Use this in production (requires HTTPS)
-        samesite="strict"  # Adjust based on your application needs
-    )
-    return response
 
 
 
