@@ -19,7 +19,7 @@ class UserCreate(UserBase):
 class UserAuthRead(UserBase):
     id: int = Field(..., example=1)
     access_token: Optional[str] = Field(None, example="jwt-token-string")
-
+    userbio : str = ""
     class Config:
         orm_mode = True
         from_attributes = True
@@ -36,7 +36,7 @@ class UserRead(BaseModel):
     email: str 
     year: int
     student_id: int
-
+    userbio: str = ""
     class Config:
         orm_mode = True
         from_attributes = True

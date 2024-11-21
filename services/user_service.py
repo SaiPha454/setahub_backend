@@ -94,7 +94,22 @@ async def reset_password(db, email: str):
     await mail.send_email(email, random_string)
 
 
-    
+
+
+async def update_user_account_service(
+        db: Session,
+        user_id: int, 
+        name: str=None, 
+        email: str = None,
+        year: int = None,
+        student_id: int = None,
+        userbio : str = None
+        
+):
+    user = await users_model.update_user_account_model(db=db, user_id=user_id, name=name, email=email, year=year, student_id=student_id, userbio=userbio)
+    return UserRead.model_validate(user).model_dump()
+
+
 async def change_user_password_service(db: Session, user_id:int, old_password: str, new_password: str):
     
     userdb = await users_model.get_user_by_id(db, user_id=user_id)

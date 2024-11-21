@@ -129,6 +129,28 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         }
     )
 
+
+@protected_router.put("/{user_id}", response_model=dict)
+async def update_user_account(
+        user_id: int, 
+        name: str=Body(None), 
+        email: str = Body(None),
+        year: int = Body(None),
+        student_id: int = Body(None),
+        userbio : str = Body(None),
+        db: Session = Depends(get_db) 
+):
+    user = await user_service.update_user_account_service(db=db, user_id=user_id, name=name, email=email, year=year, student_id=student_id, userbio=userbio)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status":"success",
+            "data" : user
+        }
+    )
+
+
 @protected_router.get("/{user_id}/registered-topics", response_model=dict)
 async def get_user_by_id_with_registered_topics(user_id: int, db: Session = Depends(get_db)):
     
@@ -200,6 +222,24 @@ async def get_user_completed_ta_appointment(user_id: int, db: Session= Depends(g
             "data": result
         }
     )
+
+@protected_router.post("/logout", response_model=dict)
+async def user_logout(response: Response):
+    response = JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "status":"success"
+        }
+    )
+
+    response.delete_cookie(
+        key="jarvis",  # Use the same key as when you set the cookie
+        httponly=True,
+        secure=True,  # Use this in production (requires HTTPS)
+        samesite="strict"  # Adjust based on your application needs
+    )
+    return response
+
 
 
 #example of protected user
