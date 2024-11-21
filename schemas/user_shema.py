@@ -20,6 +20,7 @@ class UserAuthRead(UserBase):
     id: int = Field(..., example=1)
     access_token: Optional[str] = Field(None, example="jwt-token-string")
     userbio : str = ""
+    image: str = ""
     class Config:
         orm_mode = True
         from_attributes = True
@@ -37,6 +38,8 @@ class UserRead(BaseModel):
     year: int
     student_id: int
     userbio: str = ""
+    image: str = ""
+
     class Config:
         orm_mode = True
         from_attributes = True

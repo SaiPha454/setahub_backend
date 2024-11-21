@@ -18,7 +18,9 @@ class User(Base):
     password = Column(String(255), nullable=False)  # Hashed password
     access_token = Column(String(500), nullable=True)  # Token for login (e.g., JWT)
     userbio = Column(String(500), nullable=True, default="")
+    image = Column(String(500), nullable = True, default = "/images/profile.svg")
 
+    
     appointments = relationship("Appointment", back_populates="ta")
     student_bookings = relationship("Booking", foreign_keys=[Booking.student_id], back_populates="student")
     ta_bookings = relationship("Booking", foreign_keys=[Booking.ta_id], back_populates="ta")

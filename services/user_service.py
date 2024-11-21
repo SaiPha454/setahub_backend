@@ -16,6 +16,15 @@ from schemas.user_with_session_schema import UserReadWithTASession
 from models import booking_model, appointment_model
 from schemas.booking_detail_schema import BookingReadWithTopicAndTA, BookingReadWithTopicAndStudent
 from .appointment_service import get_appointment_by_topic_and_ta_service
+import uuid
+import shutil
+from fastapi import UploadFile
+from pathlib import Path
+
+
+# Define directory to store uploaded images
+IMAGE_DIR = Path("images")
+IMAGE_DIR.mkdir(exist_ok=True)  # Create the directory if it doesn't exist
 
 
 async def register(db: Session, user: UserCreate) -> dict:
@@ -136,6 +145,34 @@ async def change_user_password_service(db: Session, user_id:int, old_password: s
     db.commit()
     db.refresh(userdb)
     return UserRead.model_validate(userdb).model_dump()
+
+
+async def update_profile_image_service(db: Session, user_id: int, image: UploadFile):
+
+    if image.content_type not in ["image/jpeg", "image/png", "image/gif", "image/svg"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "status":"fail",
+                "message":"Only image files are allowed (jpeg, png, gif, svg)."
+            }
+        )
+    
+    unique_filename = f"{uuid.uuid4()}_{image.filename}"
+    img_path = IMAGE_DIR / unique_filename
+
+    # Save the uploaded file with the unique filename
+    with img_path.open("wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+
+    # Create the URL for the saved image
+    img_url = f"/images/{unique_filename}"
+    user = await users_model.get_user_by_id(db= db , user_id=user_id)
+
+    user.image = img_url
+    db.commit()
+    db.refresh(user)
+    return UserRead.model_validate(user).model_dump()
 
 
 async def get_user_by_id_service(db: Session, user_id: int):

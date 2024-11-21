@@ -33,6 +33,7 @@ class Booking(Base):
 
 
 async def create_booking_model(db: Session, booking_data: BookingCreate):
+
     new_booking = Booking(
         topic_id=booking_data.topic_id,
         student_id=booking_data.student_id,
@@ -42,10 +43,18 @@ async def create_booking_model(db: Session, booking_data: BookingCreate):
         timeslot=booking_data.timeslot
     )
 
+
     # Add to database
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
+
+    topic = await get_booking_by_id_model(db, booking_id=new_booking.id)
+    topic = topic.topic
+    topic.booked = topic.booked +1
+    db.commit()
+    db.refresh(topic)
+    
     return new_booking
 
 async def already_booked(db: Session, booking_data: BookingCreate):

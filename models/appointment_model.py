@@ -68,6 +68,12 @@ async def get_appointment_by_id_model(db: Session, appointment_id: int) -> Appoi
                 "message":f"Appointment with ID {appointment_id} not found"
             }
         )
+    topic = appointment.topic
+    if topic.tas > 0 :
+        topic.tas = topic.tas -1
+        db.commit()
+        db.refresh(topic)
+    print(topic)
     return appointment
 
 async def update_appointment_model(

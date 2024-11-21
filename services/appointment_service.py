@@ -39,7 +39,9 @@ async def create_appointment_service(db: Session, data: AppointmentCreate)->Appo
             }
         )
     
-    
+    topic.tas = topic.tas +1
+    db.commit()
+    db.refresh(topic)
     appointment = await appointment_model.create_appointment_model(db,data=data)
     appointment = AppointmentRead.model_validate(appointment)
     return AppointmentRead.model_dump(appointment)
@@ -84,6 +86,8 @@ async def update_appointment_service(db: Session, appointment_id:int, appointmen
 async def delete_appointment_service(db: Session, appointment_id: int):
 
     appointment = await appointment_model.get_appointment_by_id_model(db, appointment_id)
+    
+    
     if not appointment:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status
+from fastapi import APIRouter, Depends, Body, HTTPException, status, UploadFile, File
 from fastapi.responses import JSONResponse
 from services import user_service
 from database_connection import get_db
@@ -126,6 +126,20 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         content={
             "status":"success",
             "data": result
+        }
+    )
+
+
+
+@protected_router.put("/{user_id}/profile", response_model = dict)
+async def update_profle_image(user_id: int , image: UploadFile = File(...), db: Session = Depends(get_db)  ):
+    
+    user = await user_service.update_profile_image_service(db, user_id= user_id, image= image)
+    return JSONResponse(
+        status_code = status.HTTP_200_OK,
+        content={
+            "status":"success",
+            "data": user
         }
     )
 
