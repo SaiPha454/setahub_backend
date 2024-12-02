@@ -50,6 +50,7 @@ async def complete_booking(booking_id: int, db: Session= Depends(get_db)):
 @router.delete("/{booking_id}", response_model=dict)
 async def delete_booking_by_id(booking_id: int, db: Session =Depends(get_db)):
     result = await booking_service.delete_booking_by_id_service(db, booking_id)
+    
     return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={

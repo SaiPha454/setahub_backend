@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from database_session import SessionLocal
 
 
-app = FastAPI()
+app = FastAPI(title="SETAHub RESTFUL API")
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handleer(request, exec: HTTPException):
