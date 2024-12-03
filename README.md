@@ -2,6 +2,8 @@
 
 SETAHub is a platform designed to foster connections and mentorship between senior and junior students within Software Engineering Faculty at KMILT (King Mongkut's Institute of Technology Ladkrabang) . It allows junior students to book time with senior students (Teaching Assistants, or TAs) on various academic topics for guidance and advice. Senior students, on the other hand, can volunteer their time to offer support, helping juniors with their academic questions and challenges.
 
+The SETAHub backend is the core service provider for the platform, ensuring all functionalities run seamlessly. It powers key features such as user authentication, schedule appointemnts and booking etc. By securely handling data storage and retrieval, the backend ensures the platform operates reliably and efficiently, delivering a robust foundation for its services.
+
 ## Key Features
 
 - **User Authentication:** Secure user registration, login, and session management.
